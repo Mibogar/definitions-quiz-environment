@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Definitions Quiz — Environment v4.1</title>
+  <style>
+    :root{--gap:14px;--radius:14px;--shadow:0 6px 24px rgba(0,0,0,.08)}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;margin:0;background:#f7f7fb;color:#222}
+    header{padding:18px 16px;background:#111;color:#fff;position:sticky;top:0;z-index:2}
+    header h1{margin:0;font-size:19px}
+    .app{max-width:1000px;margin:22px auto;padding:0 16px 90px}
+    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:var(--gap)}
+    .row{display:flex;gap:var(--gap);flex-wrap:wrap;align-items:flex-start}
+    .row>*{flex:1 1 240px}
+    textarea,input,select{width:100%;padding:12px 14px;border:1px solid #e6e6ef;border-radius:10px;background:#fff;font-size:16px}
+    button{border:0;padding:12px 16px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);background:#1f6feb;color:white;font-weight:600}
+    button.secondary{background:#eee;color:#111}
+    button.ghost{background:transparent;box-shadow:none;border:1px solid #ddd;color:#333}
+    .muted{color:#666}.small{font-size:13px}
+    .stat{background:#0f172a;color:#fff;padding:10px 12px;border-radius:10px;font-size:14px}
+    .space{flex:1}.hidden{display:none}
+    .good{background:#e9f8ee;border:1px solid #b5e3c3}
+    .bad{background:#fde8ea;border:1px solid #f5b5bb;color:#b00020}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace}
+  </style>
+</head>
+<body>
+  <header><h1>Definitions Quiz — Environment v4.1</h1></header>
+  <div class="app">
+
+    <div class="card">
+      <p>Mismo funcionamiento que tus quizzes anteriores: selector de bloque, orden, flexible/estricto, pista en español opcional, tolerancia de espacios finales y mayúscula inicial, y botón <b>Continuar</b> cuando fallas.</p>
+      <p class="small muted">Nota: aquí he dividido el vocabulario en 2 bloques (LISTENING = 1–10, READING = 11–20) para mantener el selector. Puedes cambiarlo fácilmente en la sección DATA.</p>
+    </div>
+
+    <div class="card" id="config">
+      <h3>Configuración</h3>
+      <div class="row">
+        <div>
+          <label class="small">Conjunto</label>
+          <select id="bank">
+            <option value="LISTENING" selected>LISTENING</option>
+            <option value="READING">READING</option>
+            <option value="BOTH">AMBOS</option>
+          </select>
+        </div>
+        <div>
+          <label class="small">Orden</label>
+          <select id="order">
+            <option value="sequential">Secuencial</option>
+            <option value="random">Aleatorio</option>
+          </select>
+        </div>
+        <div>
+          <label class="small">Criterio</label>
+          <select id="criterion">
+            <option value="flex" selected>Flexible</option>
+            <option value="strict">Estricto</option>
+          </select>
+        </div>
+        <div>
+          <label class="small">Pistas</label>
+          <select id="hints">
+            <option value="off" selected>Sin pista</option>
+            <option value="es">Mostrar pista en español</option>
+          </select>
+        </div>
+        <div class="space"></div>
+        <div style="align-self:end"><button id="btnStart" type="button">Iniciar práctica</button></div>
+      </div>
+    </div>
+
+    <div class="card" id="quiz" style="display:none">
+      <div class="row" style="align-items:center">
+        <div class="stat" id="statLeft">Pendientes: 0</div>
+        <div class="stat" id="statRound">Ronda: 1</div>
+        <div class="stat" id="statScore">Aciertos: 0</div>
+        <div class="space"></div>
+        <button class="ghost" id="btnReset" type="button">Reiniciar</button>
+      </div>
+      <hr/>
+      <div>
+        <div class="muted small">Término</div>
+        <h2 id="term">—</h2>
+        <div id="hint" class="small muted"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <textarea id="answer" rows="3" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Escribe aquí la definición en inglés..."></textarea>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="btnCheck" type="button">Comprobar</button>
+        <button class="secondary" id="btnSkip" type="button">Saltar</button>
+        <button class="ghost" id="btnShow" type="button">Mostrar definición</button>
+        <button id="btnContinue" class="secondary" type="button" style="display:none">Continuar</button>
+      </div>
+      <div id="feedback" class="small" style="margin-top:10px" aria-live="polite"></div>
+    </div>
+
+  </div>
+
+<script>
+(function(){
+  const el=id=>document.getElementById(id);
+
+  // === EDITABLE DATA (añade más defs dentro de defs:[...]) ===
+  const DATA={
+    // 1–10
+    LISTENING:[
+      {term:'To reduce', es:'reducir', defs:["it means to make something smaller or less."]},
+      {term:'To recycle', es:'reciclar', defs:["it refers to taking old things and turning them into new things."]},
+      {term:'To reuse', es:'reutilizar', defs:["it means to use something again instead of throwing it away."]},
+      {term:'To conserve water / energy', es:'conservar, ahorrar', defs:["it means to use water or energy carefully so you don’t waste it.","it means to use water or energy carefully so you don't waste it."]},
+      {term:'To dispose of', es:'deshacerse de', defs:["it means to throw something away that you no longer want."]},
+      {term:'To prevent', es:'prevenir', defs:["it refers to stopping something bad from happening."]},
+      {term:'To protect', es:'proteger', defs:["it means to keep something safe from harm."]},
+      {term:'Pollution', es:'contaminación', defs:["it refers to harmful substances that are put into the air, water or land and are bad for people’s health and for the Earth.","it refers to harmful substances that are put into the air, water or land and are bad for people's health and for the Earth."]},
+      {term:'Waste', es:'residuos', defs:["it refers to things we throw away because we don’t need them anymore.","it refers to things we throw away because we don't need them anymore."]},
+      {term:'Garbage', es:'basura', defs:["it refers to trash or rubbish."]}
+    ],
+    // 11–20
+    READING:[
+      {term:'Landfill', es:'vertedero', defs:["it is a large place where people put garbage."]},
+      {term:'Carbon footprint', es:'huella de carbono', defs:["it refers to the amount of greenhouse gases (CO₂) produced by a person, activity or company.","it refers to the amount of greenhouse gases (CO2) produced by a person, activity or company."]},
+      {term:'Natural resources', es:'recursos naturales', defs:["it refers to things from nature that we use, such as water, trees or minerals."]},
+      {term:'Climate change', es:'cambio climático', defs:["it is a change in the Earth’s climate system, mainly caused by human activity.","it is a change in the Earth's climate system, mainly caused by human activity."]},
+      {term:'Renewable energy', es:'energía renovable', defs:["it refers to energy from sources that do not run out, such as the sun or wind."]},
+      {term:'Sustainable', es:'sostenible', defs:["it describes something that can continue for a long time without damaging the environment."]},
+      {term:'Harmful', es:'perjudicial', defs:["it describes something that can hurt people, animals or the environment."]},
+      {term:'Eco-friendly', es:'respetuoso con el medio ambiente', defs:["it describes something that is good for the environment."]},
+      {term:'Air quality', es:'calidad del aire', defs:["it refers to how clean or polluted the air is."]},
+      {term:'Responsibly', es:'de forma responsable', defs:["it means doing the right thing and taking care of something."]}
+    ]
+  };
+
+  // === Engine ===
+  const stopWords=new Set(['a','an','the','to','of','in','on','by','for','with','and','or','is','are','be','being','been','it','that','this','those','these','as','at','from','into','their','his','her','its','such','like','any','some','more','most','less','least','through','about','so','very','only']);
+  const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  const keywords=s=>norm(s).split(' ').filter(w=>w&&!stopWords.has(w)&&w.length>2);
+  const lev=(a,b)=>{a=a.toLowerCase();b=b.toLowerCase();const m=a.length,n=b.length;const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+c);}return dp[m][n];};
+
+  const state={round:1,score:0,asked:0,pool:[],review:[],current:null,await:false,opt:{bank:'LISTENING',order:'sequential',criterion:'flex',hints:'off'}};
+
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+  const rtrim=s=>(s||'').replace(/\s+$/,'');
+  const eqFirst=(a,b)=>{const x=a.trim(),y=b.trim();return x===y||(x&&y&&x[0].toLowerCase()===y[0].toLowerCase()&&x.slice(1)===y.slice(1));};
+
+  function buildPool(){
+    let arr=[];const b=el('bank').value;state.opt.bank=b;state.opt.order=el('order').value;state.opt.criterion=el('criterion').value;state.opt.hints=el('hints').value;
+    if(b==='LISTENING'||b==='BOTH')arr=arr.concat(DATA.LISTENING);
+    if(b==='READING'||b==='BOTH')arr=arr.concat(DATA.READING);
+    arr=arr.map(x=>({term:x.term,es:x.es,defs:x.defs||[],tries:0}));
+    if(state.opt.order==='random')shuffle(arr);
+    state.pool=arr;state.review=[];state.round=1;state.score=0;state.asked=0;state.await=false;state.current=null;
+  }
+
+  function start(){
+    buildPool();
+    el('quiz').style.display='block';
+    next();
+    update();
+  }
+
+  function update(){
+    el('statLeft').textContent='Pendientes: '+(state.pool.length);
+    el('statRound').textContent='Ronda: '+state.round;
+    el('statScore').textContent='Aciertos: '+state.score;
+  }
+
+  function next(){
+    el('feedback').innerHTML='';
+    el('btnContinue').style.display='none';
+    state.await=false;
+
+    if(state.pool.length===0){
+      if(state.review.length>0){
+        state.pool=state.review;
+        state.review=[];
+        state.round++;
+      } else {
+        el('quiz').style.display='none';
+        alert('¡Completado! Aciertos: '+state.score+' | Rondas: '+state.round);
+        return;
+      }
+    }
+
+    state.current=state.pool.shift();
+    el('term').textContent=state.current.term;
+    el('hint').textContent=(state.opt.hints==='es')?'(pista: '+state.current.es+')':'';
+    el('answer').value='';
+    el('answer').focus();
+    update();
+  }
+
+  function flexMatch(user,ref){
+    const ka=keywords(user),kb=keywords(ref);
+    if(!kb.length) return user.trim().length>0;
+    let hit=0;
+    ka.forEach(w=>{
+      if(kb.includes(w)) hit++;
+      else {
+        let min=99;
+        kb.forEach(t=>{const d=lev(w,t); if(d<min) min=d;});
+        if(min<=1) hit++;
+      }
+    });
+    return (hit/kb.length)>=0.6;
+  }
+
+  function check(show){
+    if(!state.current) return;
+    const val=rtrim(el('answer').value);
+    const defs=state.current.defs||[];
+    const primary=defs[0]||'';
+
+    if(show){
+      el('feedback').innerHTML='<div class="bad" style="padding:8px;border-radius:10px">Definición: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
+      return;
+    }
+
+    const exact=defs.some(d=>eqFirst(val,d));
+    let ok=false;
+    if(exact) ok=true;
+    else if(state.opt.criterion==='flex') ok=flexMatch(val, primary);
+    else ok=eqFirst(val, primary);
+
+    if(ok){
+      state.score++;
+      el('feedback').innerHTML='<div class="good" style="padding:8px;border-radius:10px">✔ ¡Correcto!</div>';
+      setTimeout(next, 650);
+    } else {
+      el('feedback').innerHTML='<div class="bad" style="padding:8px;border-radius:10px">✘ Incorrecto — Solución: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
+      state.current.tries++;
+      state.review.push(state.current);
+      state.await=true;
+      el('btnContinue').style.display='inline-block';
+      el('btnContinue').focus({preventScroll:false});
+    }
+    update();
+  }
+
+  // Events
+  el('btnStart').addEventListener('click', start);
+  el('btnCheck').addEventListener('click', ()=>check(false));
+  el('btnShow').addEventListener('click', ()=>check(true));
+  el('btnSkip').addEventListener('click', ()=>{ if(!state.current) return; state.review.push(state.current); next(); });
+  el('btnContinue').addEventListener('click', ()=>{ if(!state.await) return; state.await=false; el('btnContinue').style.display='none'; next(); });
+  el('btnReset').addEventListener('click', ()=>{ if(confirm('Reiniciar sesión actual?')) start(); });
+  el('answer').addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); check(false); }});
+})();
+</script>
+</body>
+</html>
