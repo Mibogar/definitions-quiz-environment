@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Definitions Quiz — Environment v4.2</title>
+  <title>Definitions Quiz — Health & Vocabulary v2</title>
   <style>
     :root{--gap:14px;--radius:14px;--shadow:0 6px 24px rgba(0,0,0,.08)}
     *{box-sizing:border-box}
@@ -23,16 +23,16 @@
     .space{flex:1}
     .good{background:#e9f8ee;border:1px solid #b5e3c3}
     .bad{background:#fde8ea;border:1px solid #f5b5bb;color:#b00020}
-    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
   </style>
 </head>
 <body>
-  <header><h1>Definitions Quiz — Environment v4.2</h1></header>
+  <header><h1>Definitions Quiz — Health & Vocabulary v2</h1></header>
   <div class="app">
 
     <div class="card">
-      <p>Mismo flujo de siempre, pero sin bloques Listening/Reading. El modo <b>Flexible</b> ahora es más tolerante: acepta definiciones con el mismo sentido aunque cambies palabras, manteniendo un mínimo de palabras clave.</p>
-      <p class="small muted">Tolerancias siempre activas: ignora <b>espacios al final</b> y la <b>mayúscula inicial</b>. Al fallar: solución en rojo + botón <b>Continuar</b>. Los fallos se repiten en la siguiente ronda.</p>
+      <p>Versión con <b>definiciones originales + alternativas corregidas</b>. La definición que Mireia ya ha estudiado se acepta como correcta. En modo <b>Flexible</b>, también se aceptan frases con el mismo sentido si incluyen suficientes palabras clave.</p>
+      <p class="small muted">Tolerancias siempre activas: espacios finales y mayúscula inicial. Al fallar: solución en rojo + botón Continuar. Los fallos se repiten en la siguiente ronda.</p>
     </div>
 
     <div class="card" id="config">
@@ -96,102 +96,205 @@
 (function(){
   const el=id=>document.getElementById(id);
 
-  // === EDITABLE DATA ===
-  // Puedes añadir variantes en defs:[ ... ] si quieres aceptar varias frases "modelo".
   const ITEMS=[
-    {term:'To reduce', es:'reducir', defs:["it means to make something smaller or less."]},
-    {term:'To recycle', es:'reciclar', defs:["it refers to taking old things and turning them into new things."]},
-    {term:'To reuse', es:'reutilizar', defs:[
-      "it means to use something again instead of throwing it away.",
-      "it means to use something again.",
-      "it's to use something again"
+    {term:'Nutritious', es:'nutritivo', defs:[
+      "it's something that is in the food and it's good for our body.",
+      "it describes food that contains substances that are good for the body.",
+      "it is food that is good for your body."
     ]},
-    {term:'To conserve water / energy', es:'conservar, ahorrar', defs:[
-      "it means to use water or energy carefully so you don’t waste it.",
-      "it means to use water or energy carefully so you don't waste it."
+    {term:'Various', es:'diversos', defs:[
+      "there are different options for something.",
+      "it means there are different kinds or options.",
+      "it refers to several different things or options."
     ]},
-    {term:'To dispose of', es:'deshacerse de', defs:["it means to throw something away that you no longer want."]},
-    {term:'To prevent', es:'prevenir', defs:["it refers to stopping something bad from happening."]},
-    {term:'To protect', es:'proteger', defs:["it means to keep something safe from harm."]},
-    {term:'Pollution', es:'contaminación', defs:[
-      "it refers to harmful substances that are put into the air, water or land and are bad for people’s health and for the Earth.",
-      "it refers to harmful substances that are put into the air, water or land and are bad for people's health and for the Earth.",
-      "there are bad things that affect the environment and are bad for people's health and for the Earth",
-      "there are bad things that affects to the environment and are bad for people's health and for the Earth"
+    {term:'Comfortable', es:'cómodo', defs:[
+      "it's when you stay good with something (like sleep).",
+      "it describes something that makes you feel relaxed or at ease.",
+      "it is when something feels good and relaxed."
     ]},
-    {term:'Waste', es:'residuos', defs:[
-      "it refers to things we throw away because we don’t need them anymore.",
-      "it refers to things we throw away because we don't need them anymore."
+    {term:'Hygiene', es:'higiene', defs:[
+      "it's when you are clean.",
+      "it refers to keeping yourself and your surroundings clean.",
+      "it is the practice of keeping clean to stay healthy."
     ]},
-    {term:'Garbage', es:'basura', defs:["it refers to trash or rubbish."]},
-    {term:'Landfill', es:'vertedero', defs:["it is a large place where people put garbage."]},
-    {term:'Carbon footprint', es:'huella de carbono', defs:[
-      "it refers to the amount of greenhouse gases (CO₂) produced by a person, activity or company.",
-      "it refers to the amount of greenhouse gases (CO2) produced by a person, activity or company."
+    {term:'Environment', es:'medio ambiente', defs:[
+      "it refers to all things that are surrounding people.",
+      "it refers to everything that surrounds people, animals and plants.",
+      "it is the world around us."
     ]},
-    {term:'Natural resources', es:'recursos naturales', defs:["it refers to things from nature that we use, such as water, trees or minerals."]},
-    {term:'Climate change', es:'cambio climático', defs:[
-      "it is a change in the Earth’s climate system, mainly caused by human activity.",
-      "it is a change in the Earth's climate system, mainly caused by human activity."
+    {term:'Well-being', es:'bienestar', defs:[
+      "it's a state where you are mentally, physically, emotionally and socially well.",
+      "it is the state of being healthy, happy and comfortable.",
+      "it means being well physically, mentally, emotionally and socially."
     ]},
-    {term:'Renewable energy', es:'energía renovable', defs:["it refers to energy from sources that do not run out, such as the sun or wind."]},
-    {term:'Sustainable', es:'sostenible', defs:["it describes something that can continue for a long time without damaging the environment."]},
-    {term:'Harmful', es:'perjudicial', defs:["it describes something that can hurt people, animals or the environment."]},
-    {term:'Eco-friendly', es:'respetuoso con el medio ambiente', defs:["it describes something that is good for the environment."]},
-    {term:'Air quality', es:'calidad del aire', defs:["it refers to how clean or polluted the air is."]},
-    {term:'Responsibly', es:'de forma responsable', defs:["it means doing the right thing and taking care of something."]}
+    {term:'Quest', es:'búsqueda', defs:[
+      "it's a long search for something.",
+      "it is a long or difficult search for something.",
+      "it refers to a search for something important."
+    ]},
+    {term:'Brisk', es:'vivaz, rápido', defs:[
+      "it refers to something quick.",
+      "it describes something quick and energetic.",
+      "it means fast, active or energetic."
+    ]},
+    {term:'Energizing', es:'que da energía', defs:[
+      "it's something that gives energy.",
+      "it describes something that makes you feel more energetic.",
+      "it is something that gives you energy."
+    ]},
+    {term:'Beverages', es:'bebidas', defs:[
+      "it refers to all drinks.",
+      "it means drinks.",
+      "it refers to liquids that people drink."
+    ]},
+    {term:'Swap', es:'intercambio', defs:[
+      "it refers to change one thing for another.",
+      "it means to exchange one thing for another.",
+      "it is to replace something with another thing."
+    ]},
+    {term:'Overlooked', es:'pasado por alto', defs:[
+      "it's something that was ignored.",
+      "it describes something that was not noticed or considered.",
+      "it means ignored or not noticed."
+    ]},
+    {term:'Accomplished', es:'logrado', defs:[
+      "it's something that is completed successfully.",
+      "it describes something that has been achieved or completed successfully.",
+      "it means achieved."
+    ]},
+    {term:'Hesitate', es:'dudar', defs:[
+      "it's stop before doing something because you are not sure.",
+      "it means to pause before doing something because you are not sure.",
+      "it is to stop for a moment because you have doubts."
+    ]},
+    {term:'Pare', es:'pelar', defs:[
+      "it refers to cut the outer part of something (like a fruit).",
+      "it means to cut off the outer part of something, such as a fruit.",
+      "it is to peel or cut the outside of something."
+    ]},
+    {term:'Mental health', es:'salud mental', defs:[
+      "it's how well-being a person is.",
+      "it refers to a person's emotional and psychological well-being.",
+      "it is how well a person feels and functions emotionally and mentally."
+    ]},
+    {term:'Deal', es:'acuerdo', defs:[
+      "it's when you reach an agreement with someone.",
+      "it is an agreement between people.",
+      "it means an agreement or arrangement."
+    ]},
+    {term:'Allow', es:'permitir', defs:[
+      "it's when it's acceptable to do something.",
+      "it means to permit someone to do something.",
+      "it is to let someone do something."
+    ]},
+    {term:'As long as', es:'mientras', defs:[
+      "it refers to something that happens over a period time.",
+      "it means during the time that something happens.",
+      "it can mean provided that or during the time that."
+    ]},
+    {term:'Find out', es:'descubrir', defs:[
+      "it's to discover something.",
+      "it means to discover or learn something.",
+      "it is to get information about something."
+    ]},
+    {term:'Overwhelming', es:'abrumador, agobiante', defs:[
+      "it's when someone press someone to its limits.",
+      "it describes something that is too strong, intense or difficult to deal with.",
+      "it means something makes you feel stressed because it is too much."
+    ]},
+    {term:'Breakdown', es:'crisis nerviosa', defs:[
+      "it refers to exceed your limits with problems.",
+      "it refers to a moment when someone cannot cope because of stress or problems.",
+      "it is a serious emotional or mental crisis."
+    ]},
+    {term:'Insight', es:'percepción, conocimiento', defs:[
+      "it's how you interpret a situation.",
+      "it is a clear understanding of a situation.",
+      "it means the ability to understand something deeply."
+    ]},
+    {term:'Shortness', es:'falta de', defs:[
+      "it refers to the absence of something.",
+      "it means a lack of something.",
+      "it refers to not having enough of something."
+    ]},
+    {term:'Statewide', es:'a nivel estatal', defs:[
+      "it's something that applies to all the state.",
+      "it describes something that applies to the whole state.",
+      "it means across an entire state."
+    ]},
+    {term:'Astounding', es:'sorprendente, asombroso', defs:[
+      "it's something that surprises you.",
+      "it describes something very surprising or amazing.",
+      "it means extremely surprising."
+    ]},
+    {term:'Lobbyist', es:'miembro de un grupo que influye en leyes', defs:[
+      "it's someone that influences in laws, government.",
+      "it is someone who tries to influence laws or government decisions.",
+      "it refers to a person who tries to persuade politicians or governments."
+    ]},
+    {term:'Groundbreaking', es:'revolucionario, innovador', defs:[
+      "it's something that introduces changes.",
+      "it describes something new and important that changes the way things are done.",
+      "it means innovative or revolutionary."
+    ]},
+    {term:'Struggle', es:'tener dificultad en', defs:[
+      "it refers to have difficulties to do something.",
+      "it means to have difficulty doing something.",
+      "it is to try hard because something is difficult."
+    ]},
+    {term:'Step forward', es:'dar un paso al frente, ofrecerse', defs:[
+      "it's to volunteer to do something.",
+      "it means to offer to do something or take responsibility.",
+      "it is to volunteer or take action."
+    ]},
+    {term:'Deserve', es:'merecer', defs:[
+      "it's to have something because of your actions.",
+      "it means to be worthy of something because of your actions.",
+      "it is to have earned something."
+    ]},
+    {term:'Empathy', es:'empatía', defs:[
+      "it's the ability to understand other people's feelings and problems.",
+      "it is the ability to understand and share other people's feelings.",
+      "it means understanding how another person feels."
+    ]},
+    {term:'Sympathy', es:'compasión, lástima', defs:[
+      "it refers to an affective feeling to others.",
+      "it is a feeling of care or sadness for someone else's problems.",
+      "it means feeling sorry or compassion for someone."
+    ]}
   ];
 
-  // === Matching engine (flexible mejorado) ===
   const stopWords=new Set(['a','an','the','to','of','in','on','by','for','with','and','or','is','are','be','being','been','it','that','this','those','these','as','at','from','into','their','his','her','its','such','like','any','some','more','most','less','least','through','about','so','very','only','no','not']);
   const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
-  const toks=s=>norm(s).split(' ').filter(Boolean);
-  const keywords=s=>toks(s).filter(w=>!stopWords.has(w) && w.length>2);
+  const keywords=s=>norm(s).split(' ').filter(w=>w&&!stopWords.has(w)&&w.length>2);
   const lev=(a,b)=>{a=a.toLowerCase();b=b.toLowerCase();const m=a.length,n=b.length;const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+c);}return dp[m][n];};
   const rtrim=s=>(s||'').replace(/\s+$/,'');
-
-  // Tolerancias: espacios finales + mayúscula inicial
   const eqFirst=(a,b)=>{const x=a.trim(),y=b.trim();return x===y||(x&&y&&x[0].toLowerCase()===y[0].toLowerCase()&&x.slice(1)===y.slice(1));};
 
   function flexScore(user, ref){
-    const uK=[...new Set(keywords(user))];
-    const rK=[...new Set(keywords(ref))];
-    if(!rK.length) return user.trim().length?1:0;
-
-    // Contamos cuántas keywords del REF aparecen (o casi) en la respuesta del usuario.
+    const u=[...new Set(keywords(user))];
+    const r=[...new Set(keywords(ref))];
+    if(!r.length) return user.trim().length?1:0;
     let hit=0;
-    for(const rk of rK){
+    for(const rk of r){
       let ok=false;
-      for(const uk of uK){
-        if(uk===rk){ ok=true; break; }
-        if(lev(uk,rk)<=1){ ok=true; break; } // typo leve
+      for(const uk of u){
+        if(uk===rk || lev(uk,rk)<=1){ok=true;break;}
       }
       if(ok) hit++;
     }
-
-    return hit / rK.length; // 0..1
+    return hit/r.length;
   }
 
   function isFlexibleCorrect(user, defs){
-    // Regla: si coincide EXACTO con cualquiera de defs → correcto
-    if(defs.some(d=>eqFirst(user,d))) return {ok:true, exact:true, bestDef:defs[0], score:1};
-
-    // Si no es exacto: buscamos el mejor score contra cualquiera de defs
-    let best={score:0, def:defs[0]||''};
-    for(const d of defs){
-      const sc=flexScore(user,d);
-      if(sc>best.score){ best={score:sc, def:d}; }
-    }
-
-    // Umbral (más permisivo que antes, pero evita respuestas demasiado vagas)
-    // Si el ref tiene pocas keywords, exigimos un poco más.
-    const refK = [...new Set(keywords(best.def))].length;
-    const threshold = refK<=4 ? 0.70 : 0.50;
-
-    return {ok: best.score >= threshold, exact:false, bestDef:best.def, score:best.score};
+    if(defs.some(d=>eqFirst(user,d))) return true;
+    let best=0, bestDef=defs[0]||'';
+    for(const d of defs){ const s=flexScore(user,d); if(s>best){best=s;bestDef=d;} }
+    const n=[...new Set(keywords(bestDef))].length;
+    const threshold=n<=4?0.70:0.50;
+    return best>=threshold;
   }
 
-  // === Session state (rondas) ===
   const state={round:1,score:0,pool:[],review:[],current:null,await:false,opt:{order:'sequential',criterion:'flex',hints:'off'}};
   const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
@@ -199,20 +302,13 @@
     state.opt.order=el('order').value;
     state.opt.criterion=el('criterion').value;
     state.opt.hints=el('hints').value;
-
-    let arr=ITEMS.map(x=>({term:x.term, es:x.es, defs:x.defs||[], tries:0}));
+    let arr=ITEMS.map(x=>({term:x.term,es:x.es,defs:x.defs||[],tries:0}));
     if(state.opt.order==='random') shuffle(arr);
-
-    state.pool=arr;
-    state.review=[];
-    state.round=1;
-    state.score=0;
-    state.current=null;
-    state.await=false;
+    state.pool=arr;state.review=[];state.round=1;state.score=0;state.current=null;state.await=false;
   }
 
   function update(){
-    const pending = state.pool.length + (state.current?1:0);
+    const pending=state.pool.length+(state.current?1:0);
     el('statLeft').textContent='Pendientes: '+pending;
     el('statRound').textContent='Ronda: '+state.round;
     el('statScore').textContent='Aciertos: '+state.score;
@@ -222,61 +318,39 @@
     el('feedback').innerHTML='';
     el('btnContinue').style.display='none';
     state.await=false;
-
-    if(!state.current && state.pool.length===0){
-      if(state.review.length>0){
-        state.pool=state.review;
-        state.review=[];
-        state.round++;
-      } else {
-        el('quiz').style.display='none';
-        alert('¡Completado! Aciertos: '+state.score+' | Rondas: '+state.round);
-        return;
-      }
+    if(!state.current&&state.pool.length===0){
+      if(state.review.length>0){state.pool=state.review;state.review=[];state.round++;}
+      else{el('quiz').style.display='none';alert('¡Completado! Aciertos: '+state.score+' | Rondas: '+state.round);return;}
     }
-
-    state.current = state.pool.shift();
-    el('term').textContent = state.current.term;
-    el('hint').textContent = (state.opt.hints==='es') ? '(pista: '+state.current.es+')' : '';
-    el('answer').value='';
-    el('answer').focus();
-    update();
+    state.current=state.pool.shift();
+    el('term').textContent=state.current.term;
+    el('hint').textContent=(state.opt.hints==='es')?'(pista: '+state.current.es+')':'';
+    el('answer').value='';el('answer').focus();update();
   }
 
-  function start(){
-    buildPool();
-    el('quiz').style.display='block';
-    next();
-  }
+  function start(){buildPool();el('quiz').style.display='block';next();}
 
   function showDef(){
-    if(!state.current) return;
-    const primary = (state.current.defs && state.current.defs[0]) ? state.current.defs[0] : '';
-    el('feedback').innerHTML = '<div class="bad" style="padding:8px;border-radius:10px">Definición: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
+    if(!state.current)return;
+    const primary=state.current.defs[0]||'';
+    el('feedback').innerHTML='<div class="bad" style="padding:8px;border-radius:10px">Definición: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
   }
 
   function check(){
-    if(!state.current) return;
-    const user = rtrim(el('answer').value);
-    const defs = state.current.defs || [];
-    const primary = defs[0] || '';
-
+    if(!state.current)return;
+    const user=rtrim(el('answer').value);
+    const defs=state.current.defs||[];
+    const primary=defs[0]||'';
     let ok=false;
-
-    if(state.opt.criterion==='strict'){
-      ok = eqFirst(user, primary);
-    } else {
-      ok = isFlexibleCorrect(user, defs).ok;
-    }
-
+    if(state.opt.criterion==='strict') ok=defs.some(d=>eqFirst(user,d));
+    else ok=isFlexibleCorrect(user,defs);
     if(ok){
       state.score++;
-      el('feedback').innerHTML = '<div class="good" style="padding:8px;border-radius:10px">✔ ¡Correcto!</div>';
+      el('feedback').innerHTML='<div class="good" style="padding:8px;border-radius:10px">✔ ¡Correcto!</div>';
       state.current=null;
-      setTimeout(next, 650);
-    } else {
-      el('feedback').innerHTML = '<div class="bad" style="padding:8px;border-radius:10px">✘ Incorrecto — Solución: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
-      // Repetir en la próxima ronda
+      setTimeout(next,650);
+    }else{
+      el('feedback').innerHTML='<div class="bad" style="padding:8px;border-radius:10px">✘ Incorrecto — Solución: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
       state.current.tries++;
       state.review.push(state.current);
       state.current=null;
@@ -287,14 +361,13 @@
     }
   }
 
-  // Events
-  el('btnStart').addEventListener('click', start);
-  el('btnCheck').addEventListener('click', check);
-  el('btnShow').addEventListener('click', showDef);
-  el('btnSkip').addEventListener('click', ()=>{ if(!state.current) return; state.review.push(state.current); state.current=null; next(); });
-  el('btnContinue').addEventListener('click', ()=>{ el('btnContinue').style.display='none'; next(); });
-  el('btnReset').addEventListener('click', ()=>{ if(confirm('Reiniciar sesión actual?')) start(); });
-  el('answer').addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); check(); }});
+  el('btnStart').addEventListener('click',start);
+  el('btnCheck').addEventListener('click',check);
+  el('btnShow').addEventListener('click',showDef);
+  el('btnSkip').addEventListener('click',()=>{if(!state.current)return;state.review.push(state.current);state.current=null;next();});
+  el('btnContinue').addEventListener('click',()=>{el('btnContinue').style.display='none';next();});
+  el('btnReset').addEventListener('click',()=>{if(confirm('Reiniciar sesión actual?'))start();});
+  el('answer').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();check();}});
 })();
 </script>
 </body>
