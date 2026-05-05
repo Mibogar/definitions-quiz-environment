@@ -1,128 +1,374 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Definitions Quiz — Health v1</title>
-<style>
-body{font-family:system-ui;margin:0;background:#f5f6fa}
-header{background:#111;color:#fff;padding:16px}
-.app{max-width:900px;margin:auto;padding:20px}
-.card{background:#fff;padding:16px;border-radius:12px;margin-bottom:12px}
-textarea,select{width:100%;padding:10px;margin-top:6px}
-button{padding:10px 14px;border:none;border-radius:8px;background:#1f6feb;color:#fff;margin-top:8px}
-.good{background:#e6f7ec;padding:8px;border-radius:8px}
-.bad{background:#fde8ea;padding:8px;border-radius:8px;color:#b00020}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Definitions Quiz — Health & Vocabulary v2</title>
+  <style>
+    :root{--gap:14px;--radius:14px;--shadow:0 6px 24px rgba(0,0,0,.08)}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;margin:0;background:#f7f7fb;color:#222}
+    header{padding:18px 16px;background:#111;color:#fff;position:sticky;top:0;z-index:2}
+    header h1{margin:0;font-size:19px}
+    .app{max-width:1000px;margin:22px auto;padding:0 16px 90px}
+    .card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:var(--gap)}
+    .row{display:flex;gap:var(--gap);flex-wrap:wrap;align-items:flex-start}
+    .row>*{flex:1 1 240px}
+    textarea,select{width:100%;padding:12px 14px;border:1px solid #e6e6ef;border-radius:10px;background:#fff;font-size:16px}
+    button{border:0;padding:12px 16px;border-radius:12px;cursor:pointer;box-shadow:var(--shadow);background:#1f6feb;color:white;font-weight:600}
+    button.secondary{background:#eee;color:#111}
+    button.ghost{background:transparent;box-shadow:none;border:1px solid #ddd;color:#333}
+    .muted{color:#666}.small{font-size:13px}
+    .stat{background:#0f172a;color:#fff;padding:10px 12px;border-radius:10px;font-size:14px}
+    .space{flex:1}
+    .good{background:#e9f8ee;border:1px solid #b5e3c3}
+    .bad{background:#fde8ea;border:1px solid #f5b5bb;color:#b00020}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  </style>
 </head>
 <body>
-<header><h2>Definitions Quiz — Health v1</h2></header>
-<div class="app">
+  <header><h1>Definitions Quiz — Health & Vocabulary v2</h1></header>
+  <div class="app">
 
-<div class="card">
-<label>Orden</label>
-<select id="order">
-<option value="seq">Secuencial</option>
-<option value="rand">Aleatorio</option>
-</select>
+    <div class="card">
+      <p>Versión con <b>definiciones originales + alternativas corregidas</b>. La definición que Mireia ya ha estudiado se acepta como correcta. En modo <b>Flexible</b>, también se aceptan frases con el mismo sentido si incluyen suficientes palabras clave.</p>
+      <p class="small muted">Tolerancias siempre activas: espacios finales y mayúscula inicial. Al fallar: solución en rojo + botón Continuar. Los fallos se repiten en la siguiente ronda.</p>
+    </div>
 
-<label>Criterio</label>
-<select id="mode">
-<option value="flex">Flexible</option>
-<option value="strict">Estricto</option>
-</select>
+    <div class="card" id="config">
+      <h3>Configuración</h3>
+      <div class="row">
+        <div>
+          <label class="small">Orden</label>
+          <select id="order">
+            <option value="sequential">Secuencial</option>
+            <option value="random">Aleatorio</option>
+          </select>
+        </div>
+        <div>
+          <label class="small">Criterio</label>
+          <select id="criterion">
+            <option value="flex" selected>Flexible</option>
+            <option value="strict">Estricto</option>
+          </select>
+        </div>
+        <div>
+          <label class="small">Pistas</label>
+          <select id="hints">
+            <option value="off" selected>Sin pista</option>
+            <option value="es">Mostrar pista en español</option>
+          </select>
+        </div>
+        <div class="space"></div>
+        <div style="align-self:end"><button id="btnStart" type="button">Iniciar práctica</button></div>
+      </div>
+    </div>
 
-<button onclick="start()">Iniciar práctica</button>
-</div>
+    <div class="card" id="quiz" style="display:none">
+      <div class="row" style="align-items:center">
+        <div class="stat" id="statLeft">Pendientes: 0</div>
+        <div class="stat" id="statRound">Ronda: 1</div>
+        <div class="stat" id="statScore">Aciertos: 0</div>
+        <div class="space"></div>
+        <button class="ghost" id="btnReset" type="button">Reiniciar</button>
+      </div>
+      <hr/>
+      <div>
+        <div class="muted small">Término</div>
+        <h2 id="term">—</h2>
+        <div id="hint" class="small muted"></div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <textarea id="answer" rows="3" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="Escribe aquí la definición en inglés..."></textarea>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="btnCheck" type="button">Comprobar</button>
+        <button class="secondary" id="btnSkip" type="button">Saltar</button>
+        <button class="ghost" id="btnShow" type="button">Mostrar definición</button>
+        <button id="btnContinue" class="secondary" type="button" style="display:none">Continuar</button>
+      </div>
+      <div id="feedback" class="small" style="margin-top:10px" aria-live="polite"></div>
+    </div>
 
-<div class="card" id="quiz" style="display:none">
-<h3 id="term"></h3>
-<textarea id="answer"></textarea>
-<button onclick="check()">Comprobar</button>
-<button onclick="next()">Saltar</button>
-<div id="feedback"></div>
-</div>
-
-</div>
+  </div>
 
 <script>
-const data=[
-{term:"Nutritious",defs:["it's something that is in the food and it's good for our body"]},
-{term:"Various",defs:["there are different options for something"]},
-{term:"Comfortable",defs:["it's when you stay good with something like sleep"]},
-{term:"Hygiene",defs:["it's when you are clean"]},
-{term:"Environment",defs:["it refers to all things that are surrounding people"]},
-{term:"Well-being",defs:["it's a state where you are mentally physically emotionally and socially well"]},
-{term:"Quest",defs:["it's a long search for something"]},
-{term:"Brisk",defs:["it refers to something quick"]},
-{term:"Energizing",defs:["it's something that gives energy"]},
-{term:"Beverages",defs:["it refers to all drinks"]},
-{term:"Swap",defs:["it refers to change one thing for another"]},
-{term:"Overlooked",defs:["it's something that was ignored"]},
-{term:"Accomplished",defs:["it's something that is completed successfully"]},
-{term:"Hesitate",defs:["it's stop before doing something because you are not sure"]},
-{term:"Pare",defs:["it’s to cover a road with stone or asphalt"]},
-{term:"Mental health",defs:["it's how well being a person is"]},
-{term:"Deal",defs:["it's when you reach an agreement with someone"]},
-{term:"Allow",defs:["it's when it's acceptable to do something"]},
-{term:"As long as",defs:["it refers to something that happens over a period time"]},
-{term:"Find out",defs:["it's to discover something"]},
-{term:"Overwhelming",defs:["it's when someone press someone to its limits"]},
-{term:"Breakdown",defs:["it refers to exceed your limits with problems"]},
-{term:"Insight",defs:["it's how you interpret a situation"]},
-{term:"Shortness",defs:["it refers to the absence of something"]},
-{term:"Statewide",defs:["it's something that applies to all the state"]},
-{term:"Astounding",defs:["it's something that surprises you"]},
-{term:"Lobbyist",defs:["it's someone that influences in laws government"]},
-{term:"Groundbreaking",defs:["it's something that introduces changes"]},
-{term:"Struggle",defs:["it refers to have difficulties to do something"]},
-{term:"Step forward",defs:["it's to volunteer to do something"]},
-{term:"Deserve",defs:["it's to have something because of your actions"]},
-{term:"Empathy",defs:["it's the ability to understand other people's feelings and problems"]},
-{term:"Sympathy",defs:["it refers to an affective feeling to others"]}
-];
+(function(){
+  const el=id=>document.getElementById(id);
 
-let pool=[];
+  const ITEMS=[
+    {term:'Nutritious', es:'nutritivo', defs:[
+      "it's something that is in the food and it's good for our body.",
+      "it describes food that contains substances that are good for the body.",
+      "it is food that is good for your body."
+    ]},
+    {term:'Various', es:'diversos', defs:[
+      "there are different options for something.",
+      "it means there are different kinds or options.",
+      "it refers to several different things or options."
+    ]},
+    {term:'Comfortable', es:'cómodo', defs:[
+      "it's when you stay good with something (like sleep).",
+      "it describes something that makes you feel relaxed or at ease.",
+      "it is when something feels good and relaxed."
+    ]},
+    {term:'Hygiene', es:'higiene', defs:[
+      "it's when you are clean.",
+      "it refers to keeping yourself and your surroundings clean.",
+      "it is the practice of keeping clean to stay healthy."
+    ]},
+    {term:'Environment', es:'medio ambiente', defs:[
+      "it refers to all things that are surrounding people.",
+      "it refers to everything that surrounds people, animals and plants.",
+      "it is the world around us."
+    ]},
+    {term:'Well-being', es:'bienestar', defs:[
+      "it's a state where you are mentally, physically, emotionally and socially well.",
+      "it is the state of being healthy, happy and comfortable.",
+      "it means being well physically, mentally, emotionally and socially."
+    ]},
+    {term:'Quest', es:'búsqueda', defs:[
+      "it's a long search for something.",
+      "it is a long or difficult search for something.",
+      "it refers to a search for something important."
+    ]},
+    {term:'Brisk', es:'vivaz, rápido', defs:[
+      "it refers to something quick.",
+      "it describes something quick and energetic.",
+      "it means fast, active or energetic."
+    ]},
+    {term:'Energizing', es:'que da energía', defs:[
+      "it's something that gives energy.",
+      "it describes something that makes you feel more energetic.",
+      "it is something that gives you energy."
+    ]},
+    {term:'Beverages', es:'bebidas', defs:[
+      "it refers to all drinks.",
+      "it means drinks.",
+      "it refers to liquids that people drink."
+    ]},
+    {term:'Swap', es:'intercambio', defs:[
+      "it refers to change one thing for another.",
+      "it means to exchange one thing for another.",
+      "it is to replace something with another thing."
+    ]},
+    {term:'Overlooked', es:'pasado por alto', defs:[
+      "it's something that was ignored.",
+      "it describes something that was not noticed or considered.",
+      "it means ignored or not noticed."
+    ]},
+    {term:'Accomplished', es:'logrado', defs:[
+      "it's something that is completed successfully.",
+      "it describes something that has been achieved or completed successfully.",
+      "it means achieved."
+    ]},
+    {term:'Hesitate', es:'dudar', defs:[
+      "it's stop before doing something because you are not sure.",
+      "it means to pause before doing something because you are not sure.",
+      "it is to stop for a moment because you have doubts."
+    ]},
+    {term:'Pare', es:'pavimentar', defs:[
+      "it’s to cover a road with stone or asphalt",
+      "it's to cover a road with stone or asphalt",
+      "it means to cover a road with stone or asphalt."
+    ],
+    {term:'Mental health', es:'salud mental', defs:[
+      "it's how well-being a person is.",
+      "it refers to a person's emotional and psychological well-being.",
+      "it is how well a person feels and functions emotionally and mentally."
+    ]},
+    {term:'Deal', es:'acuerdo', defs:[
+      "it's when you reach an agreement with someone.",
+      "it is an agreement between people.",
+      "it means an agreement or arrangement."
+    ]},
+    {term:'Allow', es:'permitir', defs:[
+      "it’s when you have permission to do something",
+      "it's when you have permission to do something",
+      "it means to have permission to do something."
+    ],
+    {term:'As long as', es:'mientras', defs:[
+      "it refers to something that happens over a period time.",
+      "it means during the time that something happens.",
+      "it can mean provided that or during the time that."
+    ]},
+    {term:'Find out', es:'descubrir', defs:[
+      "it's to discover something.",
+      "it means to discover or learn something.",
+      "it is to get information about something."
+    ]},
+    {term:'Overwhelming', es:'abrumador, agobiante', defs:[
+      "it's when someone press someone to its limits.",
+      "it describes something that is too strong, intense or difficult to deal with.",
+      "it means something makes you feel stressed because it is too much."
+    ]},
+    {term:'Breakdown', es:'crisis nerviosa', defs:[
+      "it refers to exceed your limits with problems.",
+      "it refers to a moment when someone cannot cope because of stress or problems.",
+      "it is a serious emotional or mental crisis."
+    ]},
+    {term:'Insight', es:'percepción, conocimiento', defs:[
+      "it's how you interpret a situation.",
+      "it is a clear understanding of a situation.",
+      "it means the ability to understand something deeply."
+    ]},
+    {term:'Shortness', es:'falta de', defs:[
+      "it refers to the absence of something.",
+      "it means a lack of something.",
+      "it refers to not having enough of something."
+    ]},
+    {term:'Statewide', es:'a nivel estatal', defs:[
+      "it's something that applies to all the state.",
+      "it describes something that applies to the whole state.",
+      "it means across an entire state."
+    ]},
+    {term:'Astounding', es:'sorprendente, asombroso', defs:[
+      "it's something that surprises you.",
+      "it describes something very surprising or amazing.",
+      "it means extremely surprising."
+    ]},
+    {term:'Lobbyist', es:'miembro de un grupo que influye en leyes', defs:[
+      "it's someone that influences in laws, government.",
+      "it is someone who tries to influence laws or government decisions.",
+      "it refers to a person who tries to persuade politicians or governments."
+    ]},
+    {term:'Groundbreaking', es:'innovador', defs:[
+      "it’s something new and different",
+      "it's something new and different",
+      "it describes something new and different."
+    ],
+    {term:'Struggle', es:'tener dificultad en', defs:[
+      "it refers to have difficulties to do something.",
+      "it means to have difficulty doing something.",
+      "it is to try hard because something is difficult."
+    ]},
+    {term:'Step forward', es:'dar un paso al frente, ofrecerse', defs:[
+      "it’s to offer your help to do something",
+      "it's to offer your help to do something",
+      "it means to offer your help to do something."
+    ],
+    {term:'Deserve', es:'merecer', defs:[
+      "it's to have something because of your actions.",
+      "it means to be worthy of something because of your actions.",
+      "it is to have earned something."
+    ]},
+    {term:'Empathy', es:'empatía', defs:[
+      "it's the ability to understand other people's feelings and problems.",
+      "it is the ability to understand and share other people's feelings.",
+      "it means understanding how another person feels."
+    ]},
+    {term:'Sympathy', es:'compasión, lástima', defs:[
+      "it refers to an affective feeling to others.",
+      "it is a feeling of care or sadness for someone else's problems.",
+      "it means feeling sorry or compassion for someone."
+    ]}
+  ];
 
-function start(){
-pool=[...data];
-if(document.getElementById("order").value==="rand") pool.sort(()=>Math.random()-0.5);
-document.getElementById("quiz").style.display="block";
-next();
-}
+  const stopWords=new Set(['a','an','the','to','of','in','on','by','for','with','and','or','is','are','be','being','been','it','that','this','those','these','as','at','from','into','their','his','her','its','such','like','any','some','more','most','less','least','through','about','so','very','only','no','not']);
+  const norm=s=>(s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  const keywords=s=>norm(s).split(' ').filter(w=>w&&!stopWords.has(w)&&w.length>2);
+  const lev=(a,b)=>{a=a.toLowerCase();b=b.toLowerCase();const m=a.length,n=b.length;const dp=Array.from({length:m+1},()=>Array(n+1).fill(0));for(let i=0;i<=m;i++)dp[i][0]=i;for(let j=0;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){const c=a[i-1]===b[j-1]?0:1;dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+c);}return dp[m][n];};
+  const rtrim=s=>(s||'').replace(/\s+$/,'');
+  const eqFirst=(a,b)=>{const x=a.trim(),y=b.trim();return x===y||(x&&y&&x[0].toLowerCase()===y[0].toLowerCase()&&x.slice(1)===y.slice(1));};
 
-function next(){
-if(pool.length===0){alert("Finished");return}
-current=pool.shift();
-document.getElementById("term").innerText=current.term;
-document.getElementById("answer").value="";
-document.getElementById("feedback").innerHTML="";
-}
+  function flexScore(user, ref){
+    const u=[...new Set(keywords(user))];
+    const r=[...new Set(keywords(ref))];
+    if(!r.length) return user.trim().length?1:0;
+    let hit=0;
+    for(const rk of r){
+      let ok=false;
+      for(const uk of u){
+        if(uk===rk || lev(uk,rk)<=1){ok=true;break;}
+      }
+      if(ok) hit++;
+    }
+    return hit/r.length;
+  }
 
-function normalize(s){return s.toLowerCase().trim()}
+  function isFlexibleCorrect(user, defs){
+    if(defs.some(d=>eqFirst(user,d))) return true;
+    let best=0, bestDef=defs[0]||'';
+    for(const d of defs){ const s=flexScore(user,d); if(s>best){best=s;bestDef=d;} }
+    const n=[...new Set(keywords(bestDef))].length;
+    const threshold=n<=4?0.70:0.50;
+    return best>=threshold;
+  }
 
-function check(){
-let user=normalize(document.getElementById("answer").value);
-let correct=current.defs[0];
+  const state={round:1,score:0,pool:[],review:[],current:null,await:false,opt:{order:'sequential',criterion:'flex',hints:'off'}};
+  const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
-if(document.getElementById("mode").value==="strict"){
-if(user===normalize(correct)){
-document.getElementById("feedback").innerHTML='<div class="good">Correcto</div>';
-setTimeout(next,500);
-}else{
-document.getElementById("feedback").innerHTML='<div class="bad">Incorrecto: '+correct+'</div>';
-pool.push(current);
-}
-}else{
-if(user.includes("good")||user.includes("energy")||user.includes("search")||user.includes("clean")){
-document.getElementById("feedback").innerHTML='<div class="good">Correcto</div>';
-setTimeout(next,500);
-}else{
-document.getElementById("feedback").innerHTML='<div class="bad">Incorrecto: '+correct+'</div>';
-pool.push(current);
-}
-}
-}
+  function buildPool(){
+    state.opt.order=el('order').value;
+    state.opt.criterion=el('criterion').value;
+    state.opt.hints=el('hints').value;
+    let arr=ITEMS.map(x=>({term:x.term,es:x.es,defs:x.defs||[],tries:0}));
+    if(state.opt.order==='random') shuffle(arr);
+    state.pool=arr;state.review=[];state.round=1;state.score=0;state.current=null;state.await=false;
+  }
+
+  function update(){
+    const pending=state.pool.length+(state.current?1:0);
+    el('statLeft').textContent='Pendientes: '+pending;
+    el('statRound').textContent='Ronda: '+state.round;
+    el('statScore').textContent='Aciertos: '+state.score;
+  }
+
+  function next(){
+    el('feedback').innerHTML='';
+    el('btnContinue').style.display='none';
+    state.await=false;
+    if(!state.current&&state.pool.length===0){
+      if(state.review.length>0){state.pool=state.review;state.review=[];state.round++;}
+      else{el('quiz').style.display='none';alert('¡Completado! Aciertos: '+state.score+' | Rondas: '+state.round);return;}
+    }
+    state.current=state.pool.shift();
+    el('term').textContent=state.current.term;
+    el('hint').textContent=(state.opt.hints==='es')?'(pista: '+state.current.es+')':'';
+    el('answer').value='';el('answer').focus();update();
+  }
+
+  function start(){buildPool();el('quiz').style.display='block';next();}
+
+  function showDef(){
+    if(!state.current)return;
+    const primary=state.current.defs[0]||'';
+    el('feedback').innerHTML='<div class="bad" style="padding:8px;border-radius:10px">Definición: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
+  }
+
+  function check(){
+    if(!state.current)return;
+    const user=rtrim(el('answer').value);
+    const defs=state.current.defs||[];
+    const primary=defs[0]||'';
+    let ok=false;
+    if(state.opt.criterion==='strict') ok=defs.some(d=>eqFirst(user,d));
+    else ok=isFlexibleCorrect(user,defs);
+    if(ok){
+      state.score++;
+      el('feedback').innerHTML='<div class="good" style="padding:8px;border-radius:10px">✔ ¡Correcto!</div>';
+      state.current=null;
+      setTimeout(next,650);
+    }else{
+      el('feedback').innerHTML='<div class="bad" style="padding:8px;border-radius:10px">✘ Incorrecto — Solución: <span class="mono" style="color:#b00020;font-weight:700">'+primary+'</span></div>';
+      state.current.tries++;
+      state.review.push(state.current);
+      state.current=null;
+      state.await=true;
+      el('btnContinue').style.display='inline-block';
+      el('btnContinue').focus({preventScroll:false});
+      update();
+    }
+  }
+
+  el('btnStart').addEventListener('click',start);
+  el('btnCheck').addEventListener('click',check);
+  el('btnShow').addEventListener('click',showDef);
+  el('btnSkip').addEventListener('click',()=>{if(!state.current)return;state.review.push(state.current);state.current=null;next();});
+  el('btnContinue').addEventListener('click',()=>{el('btnContinue').style.display='none';next();});
+  el('btnReset').addEventListener('click',()=>{if(confirm('Reiniciar sesión actual?'))start();});
+  el('answer').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();check();}});
+})();
 </script>
 </body>
 </html>
